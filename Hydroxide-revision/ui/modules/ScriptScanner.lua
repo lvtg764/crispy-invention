@@ -429,10 +429,6 @@ function Log.new(localScript)
                     end
                 end
             end
-            
-            if not sourceDisplayed then
-                print("[Hydroxide] Source display UI not found. Use right-click → 'Copy Decompiled Source' instead.")
-            end
 
             selected.scriptLog = log
         end
