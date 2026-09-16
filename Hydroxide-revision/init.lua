@@ -345,9 +345,10 @@ else
 end
 
 -- Now import is available globally via getgenv()
-useMethods(import("methods/string"))
-useMethods(import("methods/table"))
-useMethods(import("methods/userdata"))
-useMethods(import("methods/environment"))
+-- Import in dependency order: environment first (least dependencies), then userdata, string, table
+useMethods(environment.import("methods/environment"))
+useMethods(environment.import("methods/string"))
+useMethods(environment.import("methods/userdata"))
+useMethods(environment.import("methods/table"))
 
-import("ui/main")
+environment.import("ui/main")
