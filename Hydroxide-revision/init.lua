@@ -191,7 +191,7 @@ local HttpService = game:GetService("HttpService")
 local releaseInfo
 
 pcall(function()
-    releaseInfo = HttpService:JSONDecode(game:HttpGetAsync("https://api.github.com/repos/" .. user .. "/Hydroxide/releases"))[1]
+    releaseInfo = HttpService:JSONDecode(game:HttpGetAsync("https://api.github.com/repos/" .. user .. "/" .. repo .. "/releases"))[1]
 end)
 
 if readFile and writeFile then
@@ -260,7 +260,7 @@ if readFile and writeFile then
 
                     assets = { loadstring(content, asset .. '.lua')() }
                 else
-                    local success, response = pcall(game.HttpGetAsync, game, "https://raw.githubusercontent.com/" .. user .. "/Hydroxide/" .. branch .. '/' .. asset .. ".lua")
+                    local success, response = pcall(game.HttpGetAsync, game, "https://raw.githubusercontent.com/" .. user .. "/" .. repo .. "/" .. branch .. "/" .. folder .. "/" .. asset .. ".lua")
                     if success then
                         assets = { loadstring(response, asset .. '.lua')() }
                     else
@@ -288,12 +288,12 @@ if readFile and writeFile then
             if asset:find("rbxassetid://") then
                 assets = { game:GetObjects(asset)[1] }
             elseif web then
-                local file = (hasFolderFunctions and "hydroxide/user/" .. user .. '/' .. asset .. ".lua") or ("hydroxide-" .. user .. '-' .. asset:gsub('/', '-') .. ".lua")
+                local file = (hasFolderFunctions and "hydroxide/" .. user .. "/" .. repo .. "/" .. asset .. ".lua") or ("hydroxide-" .. user .. "-" .. repo .. "-" .. asset:gsub('/', '-') .. ".lua")
                 local ran, fileContent = pcall(readFile, file)
                 local content
 
                 if not ran then
-                    local success, response = pcall(game.HttpGetAsync, game, "https://raw.githubusercontent.com/" .. user .. "/Hydroxide/" .. branch .. '/' .. asset .. ".lua")
+                    local success, response = pcall(game.HttpGetAsync, game, "https://raw.githubusercontent.com/" .. user .. "/" .. repo .. "/" .. branch .. "/" .. folder .. "/" .. asset .. ".lua")
                     if success then
                         content = response
                         writeFile(file, content)
