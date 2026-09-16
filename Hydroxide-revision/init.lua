@@ -315,6 +315,31 @@ if readFile and writeFile then
     end
 
     useMethods({ import = environment.import })
+else
+    -- Fallback: web-only import without file caching
+    function environment.import(asset)
+        if importCache[asset] then
+            return unpack(importCache[asset])
+        end
+
+        local assets
+
+        if asset:find("rbxassetid://") then
+            assets = { game:GetObjects(asset)[1] }
+        else
+            local success, response = pcall(game.HttpGetAsync, game, "https://raw.githubusercontent.com/" .. user .. "/" .. repo .. "/" .. branch .. "/" .. folder .. "/" .. asset .. ".lua")
+            if success then
+                assets = { loadstring(response, asset .. '.lua')() }
+            else
+                warn("Failed to fetch:", asset)
+                return
+            end
+        end
+
+        importCache[asset] = assets
+        return unpack(assets)
+    end
+    useMethods({ import = environment.import })
 end
 
 useMethods(import("methods/string"))
