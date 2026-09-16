@@ -48,6 +48,71 @@ local ProtosResultsClip = InfoProtos.Results.Clip
 local ProtosResultsStatus = ProtosResultsClip.ResultStatus
 local ProtosResults = ProtosResultsClip.Content
 
+-- Create Source Display UI
+local sourceContainer = Instance.new("Frame")
+sourceContainer.Name = "SourceContainer"
+sourceContainer.Size = UDim2.new(1, -10, 1, -40)
+sourceContainer.Position = UDim2.new(0, 5, 0, 35)
+sourceContainer.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+sourceContainer.BorderSizePixel = 0
+sourceContainer.Parent = InfoSource
+
+local sourceBox = Instance.new("ScrollingFrame")
+sourceBox.Name = "SourceBox"
+sourceBox.Size = UDim2.new(1, -4, 1, -4)
+sourceBox.Position = UDim2.new(0, 2, 0, 2)
+sourceBox.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+sourceBox.BorderColor3 = Color3.fromRGB(40, 40, 40)
+sourceBox.BorderSizePixel = 1
+sourceBox.ScrollBarThickness = 6
+sourceBox.CanvasSize = UDim2.new(0, 0, 0, 0)
+sourceBox.Parent = sourceContainer
+
+local sourceText = Instance.new("TextLabel")
+sourceText.Name = "SourceText"
+sourceText.Size = UDim2.new(1, -10, 1, 0)
+sourceText.Position = UDim2.new(0, 5, 0, 0)
+sourceText.BackgroundTransparency = 1
+sourceText.TextColor3 = Color3.fromRGB(225, 225, 225)
+sourceText.TextXAlignment = Enum.TextXAlignment.Left
+sourceText.TextYAlignment = Enum.TextYAlignment.Top
+sourceText.Font = Enum.Font.Code
+sourceText.TextSize = 14
+sourceText.Text = "-- Select a script and click 'View Source' to see decompiled code"
+sourceText.TextWrapped = false
+sourceText.Parent = sourceBox
+
+local copyButton = Instance.new("TextButton")
+copyButton.Name = "CopyButton"
+copyButton.Size = UDim2.new(0, 80, 0, 25)
+copyButton.Position = UDim2.new(1, -85, 0, 5)
+copyButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+copyButton.BorderColor3 = Color3.fromRGB(60, 60, 60)
+copyButton.BorderSizePixel = 1
+copyButton.Font = Enum.Font.SourceSans
+copyButton.TextSize = 16
+copyButton.Text = "Copy"
+copyButton.TextColor3 = Color3.fromRGB(225, 225, 225)
+copyButton.Parent = InfoSource
+
+copyButton.MouseButton1Click:Connect(function()
+    if sourceText.Text and #sourceText.Text > 0 then
+        setClipboard(sourceText.Text)
+        copyButton.Text = "Copied!"
+        task.wait(1)
+        copyButton.Text = "Copy"
+    end
+end)
+
+copyButton.MouseEnter:Connect(function()
+    copyButton.BackgroundColor3 = Color3.fromRGB(55, 55, 55)
+end)
+
+copyButton.MouseLeave:Connect(function()
+    copyButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+end)
+
+
 local scriptList = List.new(ListResults)
 local protosList = List.new(ProtosResults)
 local constantsList = List.new(ConstantsResults)
@@ -119,23 +184,33 @@ viewSourceContext:SetCallback(function()
             createConstant(i, v)
         end
 
-        local sourceDisplayed = false
-        if InfoSource then
-            local sourceBox = InfoSource:FindFirstChild("SourceBox")
-            if sourceBox then
-                local sourceText = sourceBox:FindFirstChild("Source")
-                if sourceText and sourceText:IsA("TextLabel") or sourceText:IsA("TextBox") then
-                    task.spawn(function()
-                        local source = localScript.GetSource()
-                        sourceText.Text = source
-                        sourceDisplayed = true
-                    end)
+        -- Display decompiled source
+        sourceText.Text = "-- Loading source..."
+        task.spawn(function()
+            local source = localScript.GetSource()
+            sourceText.Text = source
+            
+            -- Auto-resize canvas for scrolling
+            local textHeight = game:GetService("TextService"):GetTextSize(source, 14, Enum.Font.Code, Vector2.new(sourceBox.AbsoluteSize.X - 10, 999999)).Y
+            sourceText.Size = UDim2.new(1, -10, 0, textHeight + 10)
+            sourceBox.CanvasSize = UDim2.new(0, 0, 0, textHeight + 20)
+        end)
+        
+        -- Switch to Source tab
+        if selectedSection ~= InfoSource then
+            if animationCache[selectedSectionButton] then
+                animationCache[selectedSectionButton].leave:Play()
+            end
+            selectedSection.Visible = false
+            InfoSource.Visible = true
+            selectedSection = InfoSource
+            
+            for _, btn in pairs(InfoOptions:GetChildren()) do
+                if btn:IsA("TextButton") and btn.Name == "Source" then
+                    selectedSectionButton = btn
+                    break
                 end
             end
-        end
-        
-        if not sourceDisplayed then
-            warn("[Hydroxide] Source display UI not found. Use 'Copy Decompiled Source' from context menu instead.")
         end
     end
 end)
