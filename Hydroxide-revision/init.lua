@@ -407,12 +407,89 @@ if readFile and writeFile then
             importCache[asset] = assets
             return unpack(assets)
         end
+    else
+        -- THIS IS THE FIX: ran == true but releaseInfo == nil
+        print("[Hydroxide DEBUG] Using cached import (API unavailable)")
+        function environment.import(asset)
+            if importCache[asset] then
+                return unpack(importCache[asset])
+            end
+
+            local assets
+
+            if asset:find("rbxassetid://") then
+                assets = { game:GetObjects(asset)[1] }
+            elseif web then
+                local file = (hasFolderFunctions and "hydroxide/" .. user .. "/" .. repo .. "/" .. asset .. ".lua") or ("hydroxide-" .. user .. "-" .. repo .. "-" .. asset:gsub('/', '-') .. ".lua")
+                local ran, fileContent = pcall(readFile, file)
+                local content
+
+                if not ran then
+                    local success, response = pcall(game.HttpGetAsync, game, "https://raw.githubusercontent.com/" .. user .. "/" .. repo .. "/" .. branch .. "/" .. folder .. "/" .. asset .. ".lua")
+                    if success then
+                        content = response
+                        writeFile(file, content)
+                    else
+                        warn("[OH ERROR] Failed to fetch (fallback):", asset, "Error:", response)
+                        return nil
+                    end
+                else
+                    content = fileContent
+                end
+
+                if not content then
+                    warn("[OH ERROR] No content for (fallback):", asset)
+                    return nil
+                end
+
+                local loadSuccess, loadedFunc = pcall(loadstring, content, asset .. '.lua')
+                if not loadSuccess or not loadedFunc then
+                    warn("[OH ERROR] Failed to loadstring (fallback):", asset, "Error:", loadedFunc)
+                    return nil
+                end
+
+                local execSuccess, execResult = pcall(loadedFunc)
+                if not execSuccess then
+                    warn("[OH ERROR] Failed to execute (fallback):", asset, "Error:", execResult)
+                    return nil
+                end
+
+                assets = { execResult }
+            else
+                local fileContent = readFile("hydroxide/" .. asset .. ".lua")
+                if not fileContent then
+                    warn("[OH ERROR] Failed to read local file (fallback):", "hydroxide/" .. asset .. ".lua")
+                    return nil
+                end
+
+                local loadSuccess, loadedFunc = pcall(loadstring, fileContent, asset .. '.lua')
+                if not loadSuccess or not loadedFunc then
+                    warn("[OH ERROR] Failed to loadstring (fallback):", asset, "Error:", loadedFunc)
+                    return nil
+                end
+
+                local execSuccess, execResult = pcall(loadedFunc)
+                if not execSuccess then
+                    warn("[OH ERROR] Failed to execute (fallback):", asset, "Error:", execResult)
+                    return nil
+                end
+
+                assets = { execResult }
+            end
+
+            if not assets then
+                warn("[OH ERROR] No assets created for (fallback):", asset)
+                return nil
+            end
+
+            importCache[asset] = assets
+            return unpack(assets)
+        end
     end
 
     useMethods({ import = environment.import })
 else
     print("[Hydroxide DEBUG] Using web-only import (no file functions)")
-    -- Fallback: web-only import without file caching
     function environment.import(asset)
         if importCache[asset] then
             return unpack(importCache[asset])
@@ -455,28 +532,9 @@ else
     useMethods({ import = environment.import })
 end
 
--- Now import is available globally via getgenv()
--- Import in dependency order: environment first (least dependencies), then userdata, string, table
-print("[OH DEBUG] About to import methods/environment")
-local envMethods = environment.import("methods/environment")
-print("[OH DEBUG] methods/environment returned:", envMethods)
-useMethods(envMethods)
+useMethods(environment.import("methods/environment"))
+useMethods(environment.import("methods/string"))
+useMethods(environment.import("methods/userdata"))
+useMethods(environment.import("methods/table"))
 
-print("[OH DEBUG] About to import methods/string")
-local stringMethods = environment.import("methods/string")
-print("[OH DEBUG] methods/string returned:", stringMethods)
-useMethods(stringMethods)
-
-print("[OH DEBUG] About to import methods/userdata")
-local userdataMethods = environment.import("methods/userdata")
-print("[OH DEBUG] methods/userdata returned:", userdataMethods)
-useMethods(userdataMethods)
-
-print("[OH DEBUG] About to import methods/table")
-local tableMethods = environment.import("methods/table")
-print("[OH DEBUG] methods/table returned:", tableMethods)
-useMethods(tableMethods)
-
-print("[OH DEBUG] About to import ui/main")
 environment.import("ui/main")
-print("[OH DEBUG] Hydroxide loaded successfully!")
