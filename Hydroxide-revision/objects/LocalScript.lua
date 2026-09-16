@@ -1,14 +1,15 @@
-local ModuleScript = {}
+local LocalScript = {}
 
-function ModuleScript.new(instance)
-    local moduleScript = {}
+function LocalScript.new(instance)
+    local localScript = {}
     local closure = getScriptClosure(instance)
 
-    moduleScript.Instance = instance
-    moduleScript.Constants = getConstants(closure)
-    moduleScript.Protos = getProtos(closure)
+    localScript.Instance = instance
+    localScript.Environment = getSenv(instance)
+    localScript.Constants = getConstants(closure)
+    localScript.Protos = getProtos(closure)
     
-    moduleScript.GetSource = function()
+    localScript.GetSource = function()
         if decompile then
             local success, source = pcall(decompile, instance)
             if success and source then
@@ -16,13 +17,13 @@ function ModuleScript.new(instance)
                 source = source:gsub("^%-%- Decompiled with Potassium's decompiler%.%s*", "")
                 return source
             else
-                return "-- Decompiler Error\n-- " .. tostring(source) .. "\n\n-- Module: " .. instance:GetFullName()
+                return "-- Decompiler Error\n-- " .. tostring(source) .. "\n\n-- Script: " .. instance:GetFullName()
             end
         end
-        return "-- Decompiler not available\n-- Your executor needs a decompile() function\n\n-- Module: " .. instance:GetFullName()
+        return "-- Decompiler not available\n-- Your executor needs a decompile() function\n\n-- Script: " .. instance:GetFullName()
     end
 
-    return moduleScript
+    return localScript
 end
 
-return ModuleScript
+return LocalScript
