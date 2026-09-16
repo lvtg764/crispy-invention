@@ -1,4 +1,4 @@
-local environment = assert(getgenv, "<OH> ~ Your executor is not supported")()
+local environment = assert(getgenv, "<OH> ~ Your exploit is not supported")()
 
 if oh then
     oh.Exit()
@@ -195,7 +195,6 @@ pcall(function()
 end)
 
 if readFile and writeFile then
-    print("[Hydroxide DEBUG] Using file-cached import")
     local hasFolderFunctions = (isFolder and makeFolder) ~= nil
     local ran, result = pcall(readFile, "__oh_version.txt")
 
@@ -226,108 +225,32 @@ if readFile and writeFile then
             local assets
 
             if asset:find("rbxassetid://") then
-                local success, result = pcall(game.GetObjects, game, asset)
-                if success and result and result[1] then
-                    assets = { result[1] }
-                else
-                    warn("[OH ERROR] Failed to load asset:", asset, "Error:", result)
-                    return nil
-                end
+                assets = { game:GetObjects(asset)[1] }
             elseif web then
                 if readFile and writeFile then
                     local file = (hasFolderFunctions and "hydroxide/" .. user .. "/" .. repo .. "/" .. asset .. ".lua") or ("hydroxide-" .. user .. "-" .. repo .. "-" .. asset:gsub('/', '-') .. ".lua")
                     local content
 
                     if (isFile and not isFile(file)) or not importCache[asset] then
-                        local success, response = pcall(game.HttpGetAsync, game, "https://raw.githubusercontent.com/" .. user .. "/" .. repo .. "/" .. branch .. "/" .. folder .. "/" .. asset .. ".lua")
-                        if success then
-                            content = response
-                            writeFile(file, content)
-                        else
-                            warn("[OH ERROR] Failed to fetch:", asset, "Error:", response)
-                            return nil
-                        end
+                        content = game:HttpGetAsync("https://raw.githubusercontent.com/" .. user .. "/" .. repo .. "/" .. branch .. "/" .. folder .. "/" .. asset .. ".lua")
+                        writeFile(file, content)
                     else
-                        local ran, fileContent = pcall(readFile, file)
+                        local ran, result = pcall(readFile, file)
 
                         if (not ran) or not importCache[asset] then
-                            local success, response = pcall(game.HttpGetAsync, game, "https://raw.githubusercontent.com/" .. user .. "/" .. repo .. "/" .. branch .. "/" .. folder .. "/" .. asset .. ".lua")
-                            if success then
-                                content = response
-                                writeFile(file, content)
-                            else
-                                warn("[OH ERROR] Failed to fetch:", asset, "Error:", response)
-                                return nil
-                            end
+                            content = game:HttpGetAsync("https://raw.githubusercontent.com/" .. user .. "/" .. repo .. "/" .. branch .. "/" .. folder .. "/" .. asset .. ".lua")
+                            writeFile(file, content)
                         else
-                            content = fileContent
+                            content = result
                         end
                     end
 
-                    if not content then
-                        warn("[OH ERROR] No content for:", asset)
-                        return nil
-                    end
-
-                    local loadSuccess, loadedFunc = pcall(loadstring, content, asset .. '.lua')
-                    if not loadSuccess or not loadedFunc then
-                        warn("[OH ERROR] Failed to loadstring:", asset, "Error:", loadedFunc)
-                        return nil
-                    end
-
-                    local execSuccess, execResult = pcall(loadedFunc)
-                    if not execSuccess then
-                        warn("[OH ERROR] Failed to execute:", asset, "Error:", execResult)
-                        return nil
-                    end
-
-                    assets = { execResult }
+                    assets = { loadstring(content, asset .. '.lua')() }
                 else
-                    local success, response = pcall(game.HttpGetAsync, game, "https://raw.githubusercontent.com/" .. user .. "/" .. repo .. "/" .. branch .. "/" .. folder .. "/" .. asset .. ".lua")
-                    if success then
-                        local loadSuccess, loadedFunc = pcall(loadstring, response, asset .. '.lua')
-                        if not loadSuccess or not loadedFunc then
-                            warn("[OH ERROR] Failed to loadstring:", asset, "Error:", loadedFunc)
-                            return nil
-                        end
-
-                        local execSuccess, execResult = pcall(loadedFunc)
-                        if not execSuccess then
-                            warn("[OH ERROR] Failed to execute:", asset, "Error:", execResult)
-                            return nil
-                        end
-
-                        assets = { execResult }
-                    else
-                        warn("[OH ERROR] Failed to fetch:", asset, "Error:", response)
-                        return nil
-                    end
+                    assets = { loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/" .. user .. "/" .. repo .. "/" .. branch .. "/" .. folder .. "/" .. asset .. ".lua"), asset .. '.lua')() }
                 end
             else
-                local fileContent = readFile("hydroxide/" .. asset .. ".lua")
-                if not fileContent then
-                    warn("[OH ERROR] Failed to read local file:", "hydroxide/" .. asset .. ".lua")
-                    return nil
-                end
-
-                local loadSuccess, loadedFunc = pcall(loadstring, fileContent, asset .. '.lua')
-                if not loadSuccess or not loadedFunc then
-                    warn("[OH ERROR] Failed to loadstring:", asset, "Error:", loadedFunc)
-                    return nil
-                end
-
-                local execSuccess, execResult = pcall(loadedFunc)
-                if not execSuccess then
-                    warn("[OH ERROR] Failed to execute:", asset, "Error:", execResult)
-                    return nil
-                end
-
-                assets = { execResult }
-            end
-
-            if not assets then
-                warn("[OH ERROR] No assets created for:", asset)
-                return nil
+                assets = { loadstring(readFile("hydroxide/" .. asset .. ".lua"), asset .. '.lua')() }
             end
 
             importCache[asset] = assets
@@ -346,82 +269,28 @@ if readFile and writeFile then
             local assets
 
             if asset:find("rbxassetid://") then
-                local success, result = pcall(game.GetObjects, game, asset)
-                if success and result and result[1] then
-                    assets = { result[1] }
-                else
-                    warn("[OH ERROR] Failed to load asset:", asset, "Error:", result)
-                    return nil
-                end
+                assets = { game:GetObjects(asset)[1] }
             elseif web then
                 local file = (hasFolderFunctions and "hydroxide/" .. user .. "/" .. repo .. "/" .. asset .. ".lua") or ("hydroxide-" .. user .. "-" .. repo .. "-" .. asset:gsub('/', '-') .. ".lua")
-                local ran, fileContent = pcall(readFile, file)
+                local ran, result = pcall(readFile, file)
                 local content
 
                 if not ran then
-                    local success, response = pcall(game.HttpGetAsync, game, "https://raw.githubusercontent.com/" .. user .. "/" .. repo .. "/" .. branch .. "/" .. folder .. "/" .. asset .. ".lua")
-                    if success then
-                        content = response
-                        writeFile(file, content)
-                    else
-                        warn("[OH ERROR] Failed to fetch (cached):", asset, "Error:", response)
-                        return nil
-                    end
+                    content = game:HttpGetAsync("https://raw.githubusercontent.com/" .. user .. "/" .. repo .. "/" .. branch .. "/" .. folder .. "/" .. asset .. ".lua")
+                    writeFile(file, content)
                 else
-                    content = fileContent
+                    content = result
                 end
 
-                if not content then
-                    warn("[OH ERROR] No content for (cached):", asset)
-                    return nil
-                end
-
-                local loadSuccess, loadedFunc = pcall(loadstring, content, asset .. '.lua')
-                if not loadSuccess or not loadedFunc then
-                    warn("[OH ERROR] Failed to loadstring (cached):", asset, "Error:", loadedFunc)
-                    return nil
-                end
-
-                local execSuccess, execResult = pcall(loadedFunc)
-                if not execSuccess then
-                    warn("[OH ERROR] Failed to execute (cached):", asset, "Error:", execResult)
-                    return nil
-                end
-
-                assets = { execResult }
+                assets = { loadstring(content, asset .. '.lua')() }
             else
-                local fileContent = readFile("hydroxide/" .. asset .. ".lua")
-                if not fileContent then
-                    warn("[OH ERROR] Failed to read local file (cached):", "hydroxide/" .. asset .. ".lua")
-                    return nil
-                end
-
-                local loadSuccess, loadedFunc = pcall(loadstring, fileContent, asset .. '.lua')
-                if not loadSuccess or not loadedFunc then
-                    warn("[OH ERROR] Failed to loadstring (cached):", asset, "Error:", loadedFunc)
-                    return nil
-                end
-
-                local execSuccess, execResult = pcall(loadedFunc)
-                if not execSuccess then
-                    warn("[OH ERROR] Failed to execute (cached):", asset, "Error:", execResult)
-                    return nil
-                end
-
-                assets = { execResult }
-            end
-
-            if not assets then
-                warn("[OH ERROR] No assets created for (cached):", asset)
-                return nil
+                assets = { loadstring(readFile("hydroxide/" .. asset .. ".lua"), asset .. '.lua')() }
             end
 
             importCache[asset] = assets
             return unpack(assets)
         end
     else
-        -- THIS IS THE FIX: ran == true but releaseInfo == nil
-        print("[Hydroxide DEBUG] Using cached import (API unavailable)")
         function environment.import(asset)
             if importCache[asset] then
                 return unpack(importCache[asset])
@@ -430,74 +299,22 @@ if readFile and writeFile then
             local assets
 
             if asset:find("rbxassetid://") then
-                local success, result = pcall(game.GetObjects, game, asset)
-                if success and result and result[1] then
-                    assets = { result[1] }
-                else
-                    warn("[OH ERROR] Failed to load asset:", asset, "Error:", result)
-                    return nil
-                end
+                assets = { game:GetObjects(asset)[1] }
             elseif web then
                 local file = (hasFolderFunctions and "hydroxide/" .. user .. "/" .. repo .. "/" .. asset .. ".lua") or ("hydroxide-" .. user .. "-" .. repo .. "-" .. asset:gsub('/', '-') .. ".lua")
-                local ran, fileContent = pcall(readFile, file)
+                local ran, result = pcall(readFile, file)
                 local content
 
                 if not ran then
-                    local success, response = pcall(game.HttpGetAsync, game, "https://raw.githubusercontent.com/" .. user .. "/" .. repo .. "/" .. branch .. "/" .. folder .. "/" .. asset .. ".lua")
-                    if success then
-                        content = response
-                        writeFile(file, content)
-                    else
-                        warn("[OH ERROR] Failed to fetch (fallback):", asset, "Error:", response)
-                        return nil
-                    end
+                    content = game:HttpGetAsync("https://raw.githubusercontent.com/" .. user .. "/" .. repo .. "/" .. branch .. "/" .. folder .. "/" .. asset .. ".lua")
+                    writeFile(file, content)
                 else
-                    content = fileContent
+                    content = result
                 end
 
-                if not content then
-                    warn("[OH ERROR] No content for (fallback):", asset)
-                    return nil
-                end
-
-                local loadSuccess, loadedFunc = pcall(loadstring, content, asset .. '.lua')
-                if not loadSuccess or not loadedFunc then
-                    warn("[OH ERROR] Failed to loadstring (fallback):", asset, "Error:", loadedFunc)
-                    return nil
-                end
-
-                local execSuccess, execResult = pcall(loadedFunc)
-                if not execSuccess then
-                    warn("[OH ERROR] Failed to execute (fallback):", asset, "Error:", execResult)
-                    return nil
-                end
-
-                assets = { execResult }
+                assets = { loadstring(content, asset .. '.lua')() }
             else
-                local fileContent = readFile("hydroxide/" .. asset .. ".lua")
-                if not fileContent then
-                    warn("[OH ERROR] Failed to read local file (fallback):", "hydroxide/" .. asset .. ".lua")
-                    return nil
-                end
-
-                local loadSuccess, loadedFunc = pcall(loadstring, fileContent, asset .. '.lua')
-                if not loadSuccess or not loadedFunc then
-                    warn("[OH ERROR] Failed to loadstring (fallback):", asset, "Error:", loadedFunc)
-                    return nil
-                end
-
-                local execSuccess, execResult = pcall(loadedFunc)
-                if not execSuccess then
-                    warn("[OH ERROR] Failed to execute (fallback):", asset, "Error:", execResult)
-                    return nil
-                end
-
-                assets = { execResult }
-            end
-
-            if not assets then
-                warn("[OH ERROR] No assets created for (fallback):", asset)
-                return nil
+                assets = { loadstring(readFile("hydroxide/" .. asset .. ".lua"), asset .. '.lua')() }
             end
 
             importCache[asset] = assets
@@ -506,59 +323,9 @@ if readFile and writeFile then
     end
 
     useMethods({ import = environment.import })
-else
-    print("[Hydroxide DEBUG] Using web-only import (no file functions)")
-    function environment.import(asset)
-        if importCache[asset] then
-            return unpack(importCache[asset])
-        end
-
-        local assets
-
-        if asset:find("rbxassetid://") then
-                local success, result = pcall(game.GetObjects, game, asset)
-                if success and result and result[1] then
-                    assets = { result[1] }
-                else
-                    warn("[OH ERROR] Failed to load asset:", asset, "Error:", result)
-                    return nil
-                end
-        else
-            local success, response = pcall(game.HttpGetAsync, game, "https://raw.githubusercontent.com/" .. user .. "/" .. repo .. "/" .. branch .. "/" .. folder .. "/" .. asset .. ".lua")
-            if success then
-                local loadSuccess, loadedFunc = pcall(loadstring, response, asset .. '.lua')
-                if not loadSuccess or not loadedFunc then
-                    warn("[OH ERROR] Failed to loadstring (web):", asset, "Error:", loadedFunc)
-                    return nil
-                end
-
-                local execSuccess, execResult = pcall(loadedFunc)
-                if not execSuccess then
-                    warn("[OH ERROR] Failed to execute (web):", asset, "Error:", execResult)
-                    return nil
-                end
-
-                assets = { execResult }
-            else
-                warn("[OH ERROR] Failed to fetch (web):", asset, "Error:", response)
-                return nil
-            end
-        end
-
-        if not assets then
-            warn("[OH ERROR] No assets created for (web):", asset)
-            return nil
-        end
-
-        importCache[asset] = assets
-        return unpack(assets)
-    end
-    useMethods({ import = environment.import })
 end
 
-useMethods(environment.import("methods/environment"))
-useMethods(environment.import("methods/string"))
-useMethods(environment.import("methods/userdata"))
-useMethods(environment.import("methods/table"))
-
---import("ui/main")
+useMethods(import("methods/string"))
+useMethods(import("methods/table"))
+useMethods(import("methods/userdata"))
+useMethods(import("methods/environment"))
