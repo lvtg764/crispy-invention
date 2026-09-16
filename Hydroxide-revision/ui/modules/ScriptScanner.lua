@@ -1,4 +1,5 @@
 local TextService = game:GetService("TextService")
+local TweenService = game:GetService("TweenService")
 
 local ScriptScanner = {}
 local Methods = import("modules/ScriptScanner")
