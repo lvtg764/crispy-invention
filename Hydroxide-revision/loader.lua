@@ -1,12 +1,12 @@
 --[[
     Hydroxide (Modernized) - Loader Script
-    GitHub: https://github.com/lverniz388829/vigilant-octo-waddle/tree/main/Hydroxide-revision
+    GitHub: https://github.com/lvtg764/crispy-invention/tree/main/Hydroxide-revision
     
     Execute this script in your executor to load the modernized Hydroxide
 ]]
 
-local owner = "lverniz388829"
-local repo = "vigilant-octo-waddle"
+local owner = "lvtg764"
+local repo = "crispy-invention"
 local branch = "main"
 local folder = "Hydroxide-revision"
 
@@ -24,7 +24,7 @@ end
 print("[Hydroxide] Loading modernized version...")
 print("[Hydroxide] Repository: " .. owner .. "/" .. repo)
 
+-- Only load init.lua - it will handle loading ui/main and everything else
 webImport("init")
-webImport("ui/main")
 
 print("[Hydroxide] Loaded successfully! Press RightShift to toggle UI.")
