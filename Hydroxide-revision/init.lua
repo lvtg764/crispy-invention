@@ -226,7 +226,13 @@ if readFile and writeFile then
             local assets
 
             if asset:find("rbxassetid://") then
-                assets = { game:GetObjects(asset)[1] }
+                local success, result = pcall(game.GetObjects, game, asset)
+                if success and result and result[1] then
+                    assets = { result[1] }
+                else
+                    warn("[OH ERROR] Failed to load asset:", asset, "Error:", result)
+                    return nil
+                end
             elseif web then
                 if readFile and writeFile then
                     local file = (hasFolderFunctions and "hydroxide/" .. user .. "/" .. repo .. "/" .. asset .. ".lua") or ("hydroxide-" .. user .. "-" .. repo .. "-" .. asset:gsub('/', '-') .. ".lua")
@@ -340,7 +346,13 @@ if readFile and writeFile then
             local assets
 
             if asset:find("rbxassetid://") then
-                assets = { game:GetObjects(asset)[1] }
+                local success, result = pcall(game.GetObjects, game, asset)
+                if success and result and result[1] then
+                    assets = { result[1] }
+                else
+                    warn("[OH ERROR] Failed to load asset:", asset, "Error:", result)
+                    return nil
+                end
             elseif web then
                 local file = (hasFolderFunctions and "hydroxide/" .. user .. "/" .. repo .. "/" .. asset .. ".lua") or ("hydroxide-" .. user .. "-" .. repo .. "-" .. asset:gsub('/', '-') .. ".lua")
                 local ran, fileContent = pcall(readFile, file)
@@ -418,7 +430,13 @@ if readFile and writeFile then
             local assets
 
             if asset:find("rbxassetid://") then
-                assets = { game:GetObjects(asset)[1] }
+                local success, result = pcall(game.GetObjects, game, asset)
+                if success and result and result[1] then
+                    assets = { result[1] }
+                else
+                    warn("[OH ERROR] Failed to load asset:", asset, "Error:", result)
+                    return nil
+                end
             elseif web then
                 local file = (hasFolderFunctions and "hydroxide/" .. user .. "/" .. repo .. "/" .. asset .. ".lua") or ("hydroxide-" .. user .. "-" .. repo .. "-" .. asset:gsub('/', '-') .. ".lua")
                 local ran, fileContent = pcall(readFile, file)
@@ -498,7 +516,13 @@ else
         local assets
 
         if asset:find("rbxassetid://") then
-            assets = { game:GetObjects(asset)[1] }
+                local success, result = pcall(game.GetObjects, game, asset)
+                if success and result and result[1] then
+                    assets = { result[1] }
+                else
+                    warn("[OH ERROR] Failed to load asset:", asset, "Error:", result)
+                    return nil
+                end
         else
             local success, response = pcall(game.HttpGetAsync, game, "https://raw.githubusercontent.com/" .. user .. "/" .. repo .. "/" .. branch .. "/" .. folder .. "/" .. asset .. ".lua")
             if success then
