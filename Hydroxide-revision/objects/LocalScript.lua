@@ -13,7 +13,8 @@ function LocalScript.new(instance)
         if decompile then
             local success, source = pcall(decompile, instance)
             if success and source then
-                -- Just return whatever decompile gives us, no filtering
+                -- Strip Potassium's header
+                source = source:gsub("^%-%- Decompiled with Potassium's decompiler%.%s*", "")
                 return source
             else
                 return "-- Decompiler Error\n-- " .. tostring(source) .. "\n\n-- Script: " .. instance:GetFullName()
