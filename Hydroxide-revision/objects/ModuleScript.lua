@@ -11,13 +11,14 @@ function ModuleScript.new(instance)
     moduleScript.GetSource = function()
         if decompile then
             local success, source = pcall(decompile, instance)
-            if success and source and #source > 50 then
+            if success and source then
+                -- Just return whatever decompile gives us
                 return source
             else
-                return "-- Decompilation Failed\n-- Error: " .. tostring(source) .. "\n-- Module: " .. instance:GetFullName()
+                return "-- Decompiler Error\n-- " .. tostring(source) .. "\n\n-- Module: " .. instance:GetFullName()
             end
         end
-        return "-- Decompiler not available\n-- Your executor needs a decompile() function\n-- Module: " .. instance:GetFullName()
+        return "-- Decompiler not available\n-- Your executor needs a decompile() function\n\n-- Module: " .. instance:GetFullName()
     end
 
     return moduleScript
