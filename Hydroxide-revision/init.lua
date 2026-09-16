@@ -195,6 +195,7 @@ pcall(function()
 end)
 
 if readFile and writeFile then
+    print("[Hydroxide DEBUG] Using file-cached import")
     local hasFolderFunctions = (isFolder and makeFolder) ~= nil
     local ran, result = pcall(readFile, "__oh_version.txt")
 
@@ -316,6 +317,7 @@ if readFile and writeFile then
 
     useMethods({ import = environment.import })
 else
+    print("[Hydroxide DEBUG] Using web-only import (no file functions)")
     -- Fallback: web-only import without file caching
     function environment.import(asset)
         if importCache[asset] then
@@ -342,6 +344,8 @@ else
     useMethods({ import = environment.import })
 end
 
+-- Now import is available globally
+local import = environment.import
 useMethods(import("methods/string"))
 useMethods(import("methods/table"))
 useMethods(import("methods/userdata"))
