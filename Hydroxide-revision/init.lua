@@ -344,11 +344,10 @@ else
     useMethods({ import = environment.import })
 end
 
--- Now import is available globally
-local import = environment.import
-useMethods(import("methods/string"))
-useMethods(import("methods/table"))
-useMethods(import("methods/userdata"))
-useMethods(import("methods/environment"))
+-- Now import is available globally via getgenv()
+useMethods(getgenv().import("methods/string"))
+useMethods(getgenv().import("methods/table"))
+useMethods(getgenv().import("methods/userdata"))
+useMethods(getgenv().import("methods/environment"))
 
-import("ui/main")
+getgenv().import("ui/main")
