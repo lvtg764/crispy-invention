@@ -345,9 +345,9 @@ else
 end
 
 -- Now import is available globally via getgenv()
-useMethods(getgenv().import("methods/string"))
-useMethods(getgenv().import("methods/table"))
-useMethods(getgenv().import("methods/userdata"))
-useMethods(getgenv().import("methods/environment"))
+useMethods(import("methods/string"))
+useMethods(import("methods/table"))
+useMethods(import("methods/userdata"))
+useMethods(import("methods/environment"))
 
-getgenv().import("ui/main")
+import("ui/main")
