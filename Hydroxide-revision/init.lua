@@ -5,8 +5,10 @@ if oh then
 end
 
 local web = true
-local user = "Upbolt"
-local branch = "revision"
+local user = "lvtg764"
+local repo = "crispy-invention"
+local branch = "main"
+local folder = "Hydroxide-revision"
 local importCache = {}
 
 local function hasMethods(methods)
@@ -205,14 +207,14 @@ if readFile and writeFile then
             end
 
             createFolder("hydroxide")
-            createFolder("hydroxide/user")
-            createFolder("hydroxide/user/" .. user)
-            createFolder("hydroxide/user/" .. user .. "/methods")
-            createFolder("hydroxide/user/" .. user .. "/modules")
-            createFolder("hydroxide/user/" .. user .. "/objects")
-            createFolder("hydroxide/user/" .. user .. "/ui")
-            createFolder("hydroxide/user/" .. user .. "/ui/controls")
-            createFolder("hydroxide/user/" .. user .. "/ui/modules")
+            createFolder("hydroxide/" .. user)
+            createFolder("hydroxide/" .. user .. "/" .. repo)
+            createFolder("hydroxide/" .. user .. "/" .. repo .. "/methods")
+            createFolder("hydroxide/" .. user .. "/" .. repo .. "/modules")
+            createFolder("hydroxide/" .. user .. "/" .. repo .. "/objects")
+            createFolder("hydroxide/" .. user .. "/" .. repo .. "/ui")
+            createFolder("hydroxide/" .. user .. "/" .. repo .. "/ui/controls")
+            createFolder("hydroxide/" .. user .. "/" .. repo .. "/ui/modules")
         end
 
         function environment.import(asset)
@@ -226,11 +228,11 @@ if readFile and writeFile then
                 assets = { game:GetObjects(asset)[1] }
             elseif web then
                 if readFile and writeFile then
-                    local file = (hasFolderFunctions and "hydroxide/user/" .. user .. '/' .. asset .. ".lua") or ("hydroxide-" .. user .. '-' .. asset:gsub('/', '-') .. ".lua")
+                    local file = (hasFolderFunctions and "hydroxide/" .. user .. "/" .. repo .. "/" .. asset .. ".lua") or ("hydroxide-" .. user .. "-" .. repo .. "-" .. asset:gsub('/', '-') .. ".lua")
                     local content
 
                     if (isFile and not isFile(file)) or not importCache[asset] then
-                        local success, response = pcall(game.HttpGetAsync, game, "https://raw.githubusercontent.com/" .. user .. "/Hydroxide/" .. branch .. '/' .. asset .. ".lua")
+                        local success, response = pcall(game.HttpGetAsync, game, "https://raw.githubusercontent.com/" .. user .. "/" .. repo .. "/" .. branch .. "/" .. folder .. "/" .. asset .. ".lua")
                         if success then
                             content = response
                             writeFile(file, content)
@@ -242,7 +244,7 @@ if readFile and writeFile then
                         local ran, fileContent = pcall(readFile, file)
 
                         if (not ran) or not importCache[asset] then
-                            local success, response = pcall(game.HttpGetAsync, game, "https://raw.githubusercontent.com/" .. user .. "/Hydroxide/" .. branch .. '/' .. asset .. ".lua")
+                            local success, response = pcall(game.HttpGetAsync, game, "https://raw.githubusercontent.com/" .. user .. "/" .. repo .. "/" .. branch .. "/" .. folder .. "/" .. asset .. ".lua")
                             if success then
                                 content = response
                                 writeFile(file, content)
